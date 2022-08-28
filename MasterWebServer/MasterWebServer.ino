@@ -27,8 +27,8 @@ const int relay2 = 6;
 // Client variables 
 char linebuf[80];
 int charcount=0;
-String head = "<!DOCTYPE HTML><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"></head><body>";
-String end = "</body></html>";
+const char head[] PROGMEM = "<!DOCTYPE HTML><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"></head><body>";
+const char end[] PROGMEM = "</body></html>";
 String br = "<br/>";
 void setup() { 
   // Relay module prepared 
@@ -51,26 +51,26 @@ void setup() {
 // It also print Temperature in C and F
 void dashboardPage(EthernetClient &client) {
   client.println(head);                                                             
-  client.println("<h3>Arduino Web Server - <a href=\"/\">Refresh</a></h3>");
+  client.println(F("<h3>Arduino Web Server - <a href=\"/\">Refresh</a></h3>"));
   // Generates buttons to control the relay
   client.println("<h4>Relay 1 - State: " + relay1State + "</h4>");
   // If relay is off, it shows the button to turn the output on          
   if(relay1State == "Off"){
-    client.println("<a href=\"/relay1on\"><button>ON</button></a>");
+    client.println(F("<a href=\"/relay1on\"><button>ON</button></a>"));
   }
   // If relay is on, it shows the button to turn the output off         
   else if(relay1State == "On"){
-    client.println("<a href=\"/relay1off\"><button>OFF</button></a>");                                                                    
+    client.println(F("<a href=\"/relay1off\"><button>OFF</button></a>"));                                                                    
   }
   //===============relay 2
   client.println("<h4>Relay 2 - State: " + relay2State + "</h4>");
   // If relay is off, it shows the button to turn the output on          
   if(relay2State == "Off"){
-    client.println("<a href=\"/relay2on\"><button>ON</button></a>");
+    client.println(F("<a href=\"/relay2on\"><button>ON</button></a>"));
   }
   // If relay is on, it shows the button to turn the output off         
   else if(relay2State == "On"){
-    client.println("<a href=\"/relay2off\"><button>OFF</button></a>");                                                                    
+    client.println(F("<a href=\"/relay2off\"><button>OFF</button></a>"));                                                                    
   }
   client.println(end); 
 }
@@ -78,22 +78,22 @@ void dashboardPage(EthernetClient &client) {
 void handleConfig(EthernetClient &client) {
   client.println(head);
   // Generates buttons to control the relay
-  client.println("<h4>Config</h4>");
-  client.println("<form action=\"\" method=\"GET\">");
-  client.println("<label for=\"iptxt\">IP  :</label>");
+  client.println(F("<h4>Config</h4>"));
+  client.println(F("<form action=\"\" method=\"GET\">"));
+  client.println(F("<label for=\"iptxt\">IP  :</label>"));
   client.println("<input type=\"text\" id=\"iptxt\" name=\"ip\"/>");
   client.println(br);
-  client.println("<label for=\"gttxt\">Gate:</label>");
+  client.println(F("<label for=\"gttxt\">Gate:</label>"));
   client.println("<input type=\"text\" id=\"gttxt\" name=\"gate\"/>");
   client.println(br);
-  client.println("<label for=\"mktxt\">Mask:</label>");
+  client.println(F("<label for=\"mktxt\">Mask:</label>"));
   client.println("<input type=\"text\" id=\"mktxt\" name=\"mask\"/>");
   client.println(br);
-  client.println("<label for=\"dntxt\">Dns :</label>");
+  client.println(F("<label for=\"dntxt\">Dns :</label>"));
   client.println("<input type=\"text\" id=\"dntxt\" name=\"dns\"/>");
   client.println(br);
-  client.println("<input type=\"submit\" id=\"btn\" value=\"Save\"/>");
-  client.println("</form>");
+  client.println(F("<input type=\"submit\" id=\"btn\" value=\"Save\"/>"));
+  client.println(F("</form>"));
   client.println(end); 
 }
 
