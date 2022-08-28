@@ -14,7 +14,7 @@ IPAddress myDns(192, 168, 0, 1);
 EthernetClient client;
 
 int pumpStatus = 0;
-int manualPin = 4;
+
 void setup() {
    Serial.begin(9600);
   while (!Serial) {
@@ -36,7 +36,6 @@ void setup() {
   Serial.println(Ethernet.localIP());
   pinMode(2, INPUT_PULLUP);
   pinMode(3, INPUT_PULLUP);
-  pinMode(manualPin, INPUT);
 }
 
 void callSlave(String action){
@@ -56,14 +55,6 @@ void callSlave(String action){
     // if you didn't get a connection to the server:
     Serial.println(F("connection failed"));
   }
-  /*Serial.println(F("read resp:"));
-   while (client.connected() || client.available()) { //connected or data available
-    char c = client.read(); //gets byte from ethernet buffer
-    if(c == '\n'){
-      break;
-    }
-    Serial.print(c); //prints byte to serial monitor 
-  }*/
   delay(1);
   client.println("Host: 192.168.0.177");
   client.println(F("Connection: close"));
@@ -74,13 +65,53 @@ void callSlave(String action){
   pumpStatus = action == "on" ? 1 : 0;
 }
 
+String readResponse(){
+  String result = "";
+  while (client.connected() || client.available()) { //connected or data available
+    char c = client.read(); //gets byte from ethernet buffer
+    if(c == '\n'){
+      break;
+    }
+    result+=c; 
+  }
+  return result;
+}
+  
+bool ping(){
+  Serial.println(F("ping"));
+  Serial.print(F("connecting to "));
+  Serial.print(server);
+  Serial.println("...");
+  if (client.connect(server, 80)) {
+    Serial.print(F("connected to "));
+    Serial.println(client.remoteIP());
+    // Make a HTTP request:
+    client.println(F("GET /ping HTTP/1.1"));
+    client.println();
+  } else {
+    // if you didn't get a connection to the server:
+    Serial.println(F("connection failed"));
+  }
+  String resp = readResponse();
+  bool result = false;
+  if (resp.indexOf("OK") != -1){
+    result = true;
+  }
+  delay(1);
+  client.println("Host: 192.168.0.177");
+  client.println(F("Connection: close"));
+  client.println();
+  delay(1);
+  client.stop();
+  Serial.println(F("Connection closed"));
+  return result;
+}
+
+unsigned long lastChecked = 0;
+int interval = 1000 * 60 * 60;
 void loop() {
-  int manualSwitch = digitalRead(manualPin);
   int lowLevel = digitalRead(2);
   int highLevel = digitalRead(3);
-  
-  Serial.print("Manual:");
-  Serial.print(manualSwitch);
   Serial.print(" lowLevel:");
   Serial.print(lowLevel);
   Serial.print(" highLevel:");
@@ -90,21 +121,25 @@ void loop() {
   if(lowLevel == HIGH && highLevel == LOW){
     //this is should not happen any time, but in case it happens we need to go in error status otherwise we get in loop wich starts and stopes the slave
     Serial.println("ERROR");
-  }else{
-    if(manualSwitch == HIGH && pumpStatus == 0){
-      Serial.println("turn onn");
-      callSlave("on");
-    }else{
-      
-      if(lowLevel == HIGH && pumpStatus == 0){
+  } else {
+     if(lowLevel == HIGH && pumpStatus == 0){
         Serial.println("turn onn");
         callSlave("on");
-      }else if(highLevel == LOW && pumpStatus == 1){
+      } else if(highLevel == LOW && pumpStatus == 1){
         Serial.println("turn off");
         callSlave("off");
       }
-    }
-    // if you get a connection, report back via serial:
-    delay(500);
   }
+  
+  if(lastChecked == 0){
+    lastChecked = millis(); 
+  } else if((millis() - lastChecked) > interval){
+    lastChecked = millis();
+    if(ping()){
+      Serial.println("Ping: OK");
+    }else{
+      Serial.println("Ping: ERROR");
+    }
+  }
+  delay(500);
 }
