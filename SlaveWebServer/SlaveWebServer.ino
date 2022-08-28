@@ -1,16 +1,10 @@
-/*
- * Rui Santos 
- * Complete Project Details http://randomnerdtutorials.com
-*/
-
-//#include <SPI.h>
 #include <Ethernet.h>
 
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
 byte mac[] = { 
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(192,168,0, 178);
+IPAddress ip(192,168,0, 177);
 
 // Initialize the Ethernet server library
 // with the IP address and port you want to use 
@@ -97,6 +91,10 @@ void handleConfig(EthernetClient &client) {
   client.println(end); 
 }
 
+void handlePing(EthernetClient &client) {
+  client.println("OK");
+}
+
 void loop() {
   // listen for incoming clients
   EthernetClient client = server.available();
@@ -118,6 +116,9 @@ void loop() {
           if(strstr(linebuf,"GET /config") > 0){
             Serial.println("config");
             handleConfig(client);
+          } if(strstr(linebuf,"GET /ping") > 0){
+            Serial.println("ping");
+            handlePing(client);
           }else{
             Serial.println("page");
             dashboardPage(client);
